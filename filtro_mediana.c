@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
     RGB pixel;
 
     // Vetor de ponteiros
-    RGB **img = NULL;
+    RGB **img = NULL ,**imgCopy = NULL;
 
     // Descritor
     FILE *in, *out;
@@ -174,11 +174,43 @@ int main(int argc, char **argv) {
 
     // Altura * tam para ponteiro de RGB
     img = (RGB**) malloc(c.altura*sizeof(RGB *));
+    imgCopy = (RGB**) malloc(c.altura*sizeof(RGB *));
 
     // Cada pos aponta para vetor de RGB
     for(i=0 ; i<c.altura ; i++) {
         img[i] = (RGB*) malloc(c.largura*sizeof(RGB));
     }
+
+    for(i=0 ; i<c.altura ; i++) {
+        imgCopy[i] = (RGB*) malloc(c.largura*sizeof(RGB));
+    }
+
+    for(i=0 ; i<c.altura ; i++) {
+        for(j=0 ; j<c.largura ; j++) {
+            fread(&img[i][j], sizeof(RGB), 1, in);
+            imgCopy[i][j] = img[i][j];
+        }
+    }
+
+    // Percorre matriz ja carregada
+    for(i=0 ; i<c.altura ; i++) {
+        for(j=0 ; j<c.largura ; j++) {
+
+            // Grava pixel
+            fwrite(&imgCopy[i][j], sizeof(RGB), 1, out);
+        }
+    }
+
+    for(i=0 ; i<c.altura ; i++) {
+        free(img[i]);
+        free(imgCopy[i]);
+    }
+
+    free(img);
+    free(imgCopy);
+
+    fclose(in);
+    fclose(out);
 }
 
 // --------------------------------------------------------------------------------------------------------
