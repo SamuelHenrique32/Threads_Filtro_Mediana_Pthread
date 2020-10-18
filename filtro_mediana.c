@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
 
     HEADER c;
 
-    // Pixel
     RGB pixel;
 
     // Vetor de ponteiros
@@ -185,6 +184,7 @@ int main(int argc, char **argv) {
         imgCopy[i] = (RGB*) malloc(c.largura*sizeof(RGB));
     }
 
+    // Le 1 pixel por vez
     for(i=0 ; i<c.altura ; i++) {
         for(j=0 ; j<c.largura ; j++) {
             fread(&img[i][j], sizeof(RGB), 1, in);
