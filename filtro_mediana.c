@@ -7,6 +7,7 @@
 
 #define kQTD_PARAMS 4
 #define kARQ_SAIDA "saida.bmp"
+#define kQTD_BITS_IMG 24
 #define kDEBUG
 
 // Sem alinhamento
@@ -16,6 +17,7 @@
 
 void quicksort(int *v, int start, int end);
 int partition(int *v, int start, int end);
+int median(int *v, int tamanhoMascara);
 int main(int argc, char **argv);
 
 // --------------------------------------------------------------------------------------------------------
@@ -104,9 +106,42 @@ int partition(int *v, int start, int end) {
     return right;
 }
 
+int median(int *v, int tamanhoMascara) {
+
+    int posElemento = 0, val1 = 0, val2 = 0;
+
+    if((tamanhoMascara*tamanhoMascara)%2 == 0) {
+
+        val1 = v[(tamanhoMascara*tamanhoMascara/2) - 1];
+
+        val2 = v[tamanhoMascara*tamanhoMascara/2];
+
+        #ifdef kDEBUG
+            printf("Posicao elemento 01 para mediana: %d\n", (tamanhoMascara*tamanhoMascara/2)-1);
+            printf("Posicao elemento 02 para mediana: %d\n", (tamanhoMascara*tamanhoMascara/2));
+        #endif
+
+        val1 += val2;
+
+        return (val1/2);
+    }
+    else {
+
+        val1 = v[(tamanhoMascara*tamanhoMascara-1)/2];
+
+    #ifdef kDEBUG
+        printf("Posicao elemento para mediana: %d\n", (tamanhoMascara*tamanhoMascara-1)/2);
+    #endif
+
+        return val1;
+    }
+}
+
 int main(int argc, char **argv) {
 
     int i, j, tamanhoMascara, nroThreads;
+
+    int *vetMascara = NULL;
 
     unsigned char media;
 
@@ -130,6 +165,8 @@ int main(int argc, char **argv) {
     tamanhoMascara = atoi(argv[1]);
 
     nroThreads = atoi(argv[2]);
+
+    vetMascara = malloc(tamanhoMascara*tamanhoMascara*sizeof(int));
 
     in = fopen(argv[3], "rb");
 
@@ -168,6 +205,12 @@ int main(int argc, char **argv) {
     printf("Tamanho da imagem: %d\n", c.tamanhoImagem);
 #endif
 
+    if(c.nbits != kQTD_BITS_IMG) {
+        printf("\nA imagem lida nao possui %d bits", kQTD_BITS_IMG);
+
+        exit(0);
+    }
+
     // Escreve cabecalho de saida
     fwrite(&c, sizeof(HEADER), 1, out);
 
@@ -191,6 +234,8 @@ int main(int argc, char **argv) {
             imgCopy[i][j] = img[i][j];
         }
     }
+
+    median(vetMascara, tamanhoMascara);
 
     // Percorre matriz ja carregada
     for(i=0 ; i<c.altura ; i++) {
