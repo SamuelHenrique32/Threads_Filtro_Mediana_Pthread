@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 // --------------------------------------------------------------------------------------------------------
 
-#define kQTD_PARAMS 3
+#define kQTD_PARAMS 4
+#define kARQ_SAIDA "saida.bmp"
+#define kDEBUG
 
 // Sem alinhamento
 #pragma pack (1)
@@ -120,7 +123,7 @@ int main(int argc, char **argv) {
 
     if(argc!=kQTD_PARAMS) {
 
-        printf("%s <tamanho_mascara> <numero_threads>\n", argv[0]);
+        printf("%s <tamanho_mascara> <numero_threads> <arquivo_entrada>\n", argv[0]);
 
         exit(0);
     }
@@ -129,7 +132,53 @@ int main(int argc, char **argv) {
 
     nroThreads = atoi(argv[2]);
 
+    in = fopen(argv[3], "rb");
+
+    if(in == NULL) {
+        printf("Erro ao abrir arquivo \"%s\" de entrada\n", argv[3]);
+
+        exit(0);
+    }
+
+    // Abre arquivo binario para escrita
+    out = fopen(kARQ_SAIDA, "wb");
+
+    if(out == NULL) {
+        printf("Erro ao abrir arquivo de saida\n");
+
+        exit(0);
+    }
+
     printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
+
+    // Le cabecalho de entrada
+    fread(&c, sizeof(HEADER), 1, in);
+
+#ifdef kDEBUG
+    printf("Tamanho do arquivo: %d\n", c.tamanhoArquivo);
+
+    printf("Offset: %d\n", c.offset);
+
+    printf("Largura: %d\n", c.largura);
+
+    printf("Altura: %d\n", c.altura);
+
+    printf("Nro bits: %d\n", c.nbits);
+
+    // Somente bytes da imagem
+    printf("Tamanho da imagem: %d\n", c.tamanhoImagem);
+#endif
+
+    // Escreve cabecalho de saida
+    fwrite(&c, sizeof(HEADER), 1, out);
+
+    // Altura * tam para ponteiro de RGB
+    img = (RGB**) malloc(c.altura*sizeof(RGB *));
+
+    // Cada pos aponta para vetor de RGB
+    for(i=0 ; i<c.altura ; i++) {
+        img[i] = (RGB*) malloc(c.largura*sizeof(RGB));
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------
