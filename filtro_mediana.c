@@ -4,13 +4,49 @@
 
 // --------------------------------------------------------------------------------------------------------
 
-#define kVECTOR_LENGTH 10
+#define kQTD_PARAMS 3
+
+// Sem alinhamento
+#pragma pack (1)
 
 // --------------------------------------------------------------------------------------------------------
 
 void quicksort(int *v, int start, int end);
 int partition(int *v, int start, int end);
-int main(void);
+int main(int argc, char **argv);
+
+// --------------------------------------------------------------------------------------------------------
+
+typedef struct header {
+    // Cabecalho arquivo
+    unsigned short int tipo; // 2 bytes
+    unsigned int tamanhoArquivo; // 4 bytes
+    unsigned short int reservado1;
+    unsigned short int reservado2;
+    unsigned int offset;
+
+    // Cabecalho imagem
+    unsigned int tamanhoCabecalho;
+    unsigned int largura;
+    unsigned int altura;
+    unsigned short int planos; // Deve ser 1
+    unsigned short int nbits;
+    unsigned int compressao;
+    unsigned int tamanhoImagem;
+    unsigned int xres; // Resolucao x
+    unsigned int yres; // Resolucao y
+    unsigned int ucores;
+    unsigned int sigcores;
+    
+} HEADER;
+
+// 8 bits por cor = 24 bits (0 a 255)
+// Armazenado ao contrario
+typedef struct rgb {
+    unsigned char blue;
+    unsigned char green;
+    unsigned char red;
+} RGB;
 
 // --------------------------------------------------------------------------------------------------------
 
@@ -65,29 +101,35 @@ int partition(int *v, int start, int end) {
     return right;
 }
 
-int main() {
+int main(int argc, char **argv) {
 
-    int i, v[kVECTOR_LENGTH];
+    int i, j, tamanhoMascara, nroThreads;
 
-    srand(time(NULL));
-  
-    for(int i=0; i<kVECTOR_LENGTH; i++) {
-        v[i] = rand() % 100;
+    unsigned char media;
+
+    HEADER c;
+
+    // Pixel
+    RGB pixel;
+
+    // Vetor de ponteiros
+    RGB **img = NULL;
+
+    // Descritor
+    FILE *in, *out;
+
+    if(argc!=kQTD_PARAMS) {
+
+        printf("%s <tamanho_mascara> <numero_threads>\n", argv[0]);
+
+        exit(0);
     }
 
-    for(int i=0; i<kVECTOR_LENGTH; i++) {
-        printf("%d ", v[i]);
-    }
+    tamanhoMascara = atoi(argv[1]);
 
-    printf("\n\n");
+    nroThreads = atoi(argv[2]);
 
-    quicksort(v, 0, (kVECTOR_LENGTH-1));
-
-    for(int i=0; i<kVECTOR_LENGTH; i++) {
-        printf("%d ", v[i]);
-    }
-
-    printf("\n\n");
+    printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
 }
 
 // --------------------------------------------------------------------------------------------------------
