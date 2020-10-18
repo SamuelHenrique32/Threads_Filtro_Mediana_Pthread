@@ -235,6 +235,28 @@ int main(int argc, char **argv) {
         }
     }
 
+    #ifdef kDEBUG
+        printf("Mascara antes ordenacao: ");
+
+        for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
+            printf("%d ", vetMascara[i]);
+        }
+
+        printf("\n");
+    #endif
+
+    quicksort(vetMascara, 0, tamanhoMascara*tamanhoMascara);
+
+    #ifdef kDEBUG
+        printf("Mascara apos ordenacao: ");
+
+        for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
+            printf("%d ", vetMascara[i]);
+        }
+
+        printf("\n");
+    #endif
+
     median(vetMascara, tamanhoMascara);
 
     // Percorre matriz ja carregada
