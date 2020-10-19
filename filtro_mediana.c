@@ -139,18 +139,16 @@ int median(int *v, int tamanhoMascara) {
 
 int main(int argc, char **argv) {
 
-    int i, j, tamanhoMascara, nroThreads;
-
-    int *vetMascara = NULL;
+    int i, j, tamanhoMascara, nroThreads, deslPosMascara, posVetMascara = 0, posX, posY, startX, startY;
 
     unsigned char media;
 
     HEADER c;
 
-    RGB pixel;
-
     // Vetor de ponteiros
-    RGB **img = NULL ,**imgCopy = NULL;
+    RGB **img = NULL, **imgCopy = NULL, *vetMascaraRGB = NULL, pixel;
+
+    int *vetmascaraInt = NULL;
 
     // Descritor
     FILE *in, *out;
@@ -166,7 +164,7 @@ int main(int argc, char **argv) {
 
     nroThreads = atoi(argv[2]);
 
-    vetMascara = malloc(tamanhoMascara*tamanhoMascara*sizeof(int));
+    vetMascaraRGB = malloc(tamanhoMascara*tamanhoMascara*sizeof(RGB));
 
     in = fopen(argv[3], "rb");
 
@@ -211,6 +209,10 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
+    deslPosMascara = tamanhoMascara/2;
+
+    // printf("deslPosMascara = %d\n", deslPosMascara);
+
     // Escreve cabecalho de saida
     fwrite(&c, sizeof(HEADER), 1, out);
 
@@ -235,29 +237,125 @@ int main(int argc, char **argv) {
         }
     }
 
+    posVetMascara = 0;
+
+    // Posicao atual na matriz
+    posX = deslPosMascara;
+    posY = deslPosMascara;
+
+    // Posicao inicial de deslocamento em X para mascara
+    startX = 0;
+
+    // Posicao corrente de deslocamento em X para mascara
+    j = startX;
+
+    // Posicao inicial de deslocamento em Y para mascara
+    startY = 0;
+
+    // Posicao corrente de deslocamento em Y para mascara
+    i = startY;
+
+    // Para cada pixel da imagem
+    while((posX<c.largura) && (posY<c.altura)) {
+
+        if((startX>=0) && (startY>=0)) {
+
+            // Processamento para pixel atual
+            while(1) {
+
+                // vetMascara[posVetMascara++] = img[i][j];
+
+                posVetMascara++;
+
+                // Linha coluna
+                printf("[%d][%d]", i, j);
+                printf("\n");
+
+                // Incrementa coluna
+                if(j-startX <= deslPosMascara) {
+                    j++;
+                }
+                else {
+
+                    // Troca linha
+                    i++;
+                    j = startX;
+                }
+
+                // Proximo pixel
+                if(posVetMascara >= (tamanhoMascara*tamanhoMascara)) {
+
+                    posVetMascara = 0;
+
+                    break;
+                }
+            }
+        }
+
+        // Pixel a direita
+        if((posX+1) <= ((c.largura-1)-deslPosMascara)) {
+
+            posX++;
+
+            // Posicao inicial de deslocamento em X para mascara
+            startX = posX-deslPosMascara;
+
+            // Posicao corrente de deslocamento em X para mascara
+            j = startX;
+
+            // Posicao inicial de deslocamento em Y para mascara
+            startY = posY-deslPosMascara;
+
+            // Posicao corrente de deslocamento em Y para mascara
+            i = startY;
+        }
+        // Pixel abaixo
+        else if((posY+1) <= ((c.altura-1)-deslPosMascara)) {
+
+            posX = deslPosMascara;
+
+            posY++;
+
+            // Posicao inicial de deslocamento em X para mascara
+            startX = posX-deslPosMascara;
+
+            // Posicao corrente de deslocamento em X para mascara
+            j = startX;
+
+            // Posicao inicial de deslocamento em Y para mascara
+            startY = posY-deslPosMascara;
+
+            // Posicao corrente de deslocamento em Y para mascara
+            i = startY;
+        }
+        else {
+            break;
+        }
+    }
+
     #ifdef kDEBUG
         printf("Mascara antes ordenacao: ");
 
         for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
-            printf("%d ", vetMascara[i]);
+            // printf("%d ", vetMascara[i]);
         }
 
         printf("\n");
     #endif
 
-    quicksort(vetMascara, 0, tamanhoMascara*tamanhoMascara);
+    // quicksort(vetMascara, 0, tamanhoMascara*tamanhoMascara);
 
     #ifdef kDEBUG
         printf("Mascara apos ordenacao: ");
 
         for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
-            printf("%d ", vetMascara[i]);
+            // printf("%d ", vetMascara[i]);
         }
 
         printf("\n");
     #endif
 
-    median(vetMascara, tamanhoMascara);
+    // median(vetMascara, tamanhoMascara);
 
     // Percorre matriz ja carregada
     for(i=0 ; i<c.altura ; i++) {
