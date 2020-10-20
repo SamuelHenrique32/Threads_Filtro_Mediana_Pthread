@@ -272,7 +272,7 @@ int main(int argc, char **argv) {
                 printf("\n");
 
                 // Incrementa coluna
-                if(j-startX <= deslPosMascara) {
+                if((j+1-startX) <= (deslPosMascara*2)) {
                     j++;
                 }
                 else {
