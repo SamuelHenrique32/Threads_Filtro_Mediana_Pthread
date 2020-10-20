@@ -269,6 +269,7 @@ int main(int argc, char **argv) {
 
                 // Linha coluna
                 printf("[%d][%d]", i, j);
+
                 printf("\n");
 
                 // Incrementa coluna
