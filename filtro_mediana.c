@@ -139,7 +139,7 @@ int median(int *v, int tamanhoMascara) {
 
 int main(int argc, char **argv) {
 
-    int i, j, tamanhoMascara, nroThreads, deslPosMascara, posVetMascara = 0, posX, posY, startX, startY;
+    int i, j, tamanhoMascara, nroThreads, deslPosMascara, posVetMascaraRed = 0, posVetMascaraGreen = 0, posVetMascaraBlue = 0, posX, posY, startX, startY;
 
     unsigned char media;
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
     // Vetor de ponteiros
     RGB **img = NULL, **imgCopy = NULL, *vetMascaraRGB = NULL, pixel;
 
-    int *vetmascaraInt = NULL;
+    int *vetmascaraRedInt = NULL, *vetmascaraGreenInt = NULL, *vetmascaraBlueInt = NULL;
 
     // Descritor
     FILE *in, *out;
@@ -184,6 +184,10 @@ int main(int argc, char **argv) {
     }
 
     printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
+
+    vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara);
+    vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara);
+    vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara);
 
     // Le cabecalho de entrada
     fread(&c, sizeof(HEADER), 1, in);
@@ -237,7 +241,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    posVetMascara = 0;
+    posVetMascaraRed = 0;
+    posVetMascaraGreen = 0;
+    posVetMascaraBlue = 0;
 
     // Posicao atual na matriz
     posX = deslPosMascara;
@@ -263,14 +269,21 @@ int main(int argc, char **argv) {
             // Processamento para pixel atual
             while(1) {
 
-                // vetMascara[posVetMascara++] = img[i][j];
+                vetmascaraRedInt[posVetMascaraRed] = img[i][j].red;
+                vetmascaraGreenInt[posVetMascaraGreen] = img[i][j].green;
+                vetmascaraBlueInt[posVetMascaraBlue] = img[i][j].blue;
 
-                posVetMascara++;
+                printf("\nRed img[%d][%d].red = %d vetmascaraRedInt[%d] = %d\n", i, j, img[i][j].red, posVetMascaraRed, vetmascaraRedInt[posVetMascaraRed]);
+                printf("Green img[%d][%d].green = %d vetmascaraGreenInt[%d] = %d\n", i, j, img[i][j].green, posVetMascaraGreen, vetmascaraGreenInt[posVetMascaraGreen]);
+                printf("Blue img[%d][%d].blue = %d vetmascaraBlueInt[%d] = %d\n", i, j, img[i][j].blue, posVetMascaraBlue, vetmascaraBlueInt[posVetMascaraBlue]);
+
+                posVetMascaraRed++;
+                posVetMascaraGreen++;
+                posVetMascaraBlue++;
 
                 // Linha coluna
-                printf("[%d][%d]", i, j);
-
-                printf("\n");
+                //printf("[%d][%d]", i, j);
+                //printf("\n");
 
                 // Incrementa coluna
                 if((j+1-startX) <= (deslPosMascara*2)) {
@@ -284,9 +297,13 @@ int main(int argc, char **argv) {
                 }
 
                 // Proximo pixel
-                if(posVetMascara >= (tamanhoMascara*tamanhoMascara)) {
+                if(posVetMascaraRed >= (tamanhoMascara*tamanhoMascara)) {
 
-                    posVetMascara = 0;
+                    //posVetMascara = 0;
+
+                    posVetMascaraRed = 0;
+                    posVetMascaraGreen = 0;
+                    posVetMascaraBlue = 0;
 
                     break;
                 }
