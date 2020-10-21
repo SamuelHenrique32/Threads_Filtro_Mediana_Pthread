@@ -8,7 +8,9 @@
 #define kQTD_PARAMS 4
 #define kARQ_SAIDA "saida.bmp"
 #define kQTD_BITS_IMG 24
+#define kQTD_ELEMENTOS_MASCARA 49
 #define kDEBUG
+#define kDEBUG_MASCARA_ORDENADA
 
 // Sem alinhamento
 #pragma pack (1)
@@ -17,6 +19,7 @@
 
 void quicksort(int *v, int start, int end);
 int partition(int *v, int start, int end);
+void bubble_sort(int *v, int size);
 int median(int *v, int tamanhoMascara);
 int main(int argc, char **argv);
 
@@ -106,6 +109,24 @@ int partition(int *v, int start, int end) {
     return right;
 }
 
+void bubble_sort(int *v, int size) {
+    int k, j, aux;
+
+    for(k=(size - 1) ; k>0 ; k--) {
+        //printf("\n[%d] ", k);
+
+        for(j=0 ; j<k ; j++) {
+            //printf("%d, ", j);
+
+            if(v[j] > v[j + 1]) {
+                aux = v[j];
+                v[j] = v[j+1];
+                v[j+1] = aux;
+            }
+        }
+    }
+}
+
 int median(int *v, int tamanhoMascara) {
 
     int posElemento = 0, val1 = 0, val2 = 0;
@@ -140,6 +161,8 @@ int median(int *v, int tamanhoMascara) {
 int main(int argc, char **argv) {
 
     int i, j, tamanhoMascara, nroThreads, deslPosMascara, posVetMascaraRed = 0, posVetMascaraGreen = 0, posVetMascaraBlue = 0, posX, posY, startX, startY;
+
+    int mascaraVet[kQTD_ELEMENTOS_MASCARA];
 
     unsigned char media;
 
@@ -185,9 +208,9 @@ int main(int argc, char **argv) {
 
     printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
 
-    vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara);
-    vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara);
-    vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara);
+    //vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+    //vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+    //vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
 
     // Le cabecalho de entrada
     fread(&c, sizeof(HEADER), 1, in);
@@ -266,6 +289,10 @@ int main(int argc, char **argv) {
 
         if((startX>=0) && (startY>=0)) {
 
+            vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+            vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+            vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+
             // Processamento para pixel atual
             while(1) {
 
@@ -299,7 +326,83 @@ int main(int argc, char **argv) {
                 // Proximo pixel
                 if(posVetMascaraRed >= (tamanhoMascara*tamanhoMascara)) {
 
-                    //posVetMascara = 0;
+                memset(mascaraVet, 0, sizeof(mascaraVet));
+
+                for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
+                    mascaraVet[x] = vetmascaraRedInt[x];
+                }
+
+                #ifdef kQUICK_SORT
+                    quicksort(mascaraVet, 0, tamanhoMascara*tamanhoMascara);
+                #else
+                    bubble_sort(mascaraVet, tamanhoMascara*tamanhoMascara);
+                #endif
+
+                #ifdef kDEBUG_MASCARA_ORDENADA
+                    int pos = 0;
+                    
+                    printf("\nMascara Red apos ordenacao:\n");                    
+
+                    for(int pos=0 ; pos<tamanhoMascara*tamanhoMascara ; pos++) {
+                        printf("%d ", mascaraVet[pos]);
+                    }
+
+                    free(vetmascaraRedInt);
+
+                    printf("\n\n");
+                #endif
+
+                memset(mascaraVet, 0, sizeof(mascaraVet));
+
+                for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
+                    mascaraVet[x] = vetmascaraGreenInt[x];
+                }
+
+                #ifdef kQUICK_SORT
+                    quicksort(mascaraVet, 0, tamanhoMascara*tamanhoMascara);
+                #else
+                    bubble_sort(mascaraVet, tamanhoMascara*tamanhoMascara);
+                #endif
+
+                #ifdef kDEBUG_MASCARA_ORDENADA
+                    pos = 0;
+                    
+                    printf("\nMascara Green apos ordenacao:\n");                    
+
+                    for(int pos=0 ; pos<tamanhoMascara*tamanhoMascara ; pos++) {
+                        printf("%d ", mascaraVet[pos]);
+                    }
+
+                    free(vetmascaraGreenInt);
+
+                    printf("\n\n");
+                #endif
+
+                memset(mascaraVet, 0, sizeof(mascaraVet));
+
+                for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
+                    mascaraVet[x] = vetmascaraBlueInt[x];
+                }
+
+                #ifdef kQUICK_SORT
+                    quicksort(mascaraVet, 0, tamanhoMascara*tamanhoMascara);
+                #else
+                    bubble_sort(mascaraVet, tamanhoMascara*tamanhoMascara);
+                #endif
+
+                #ifdef kDEBUG_MASCARA_ORDENADA
+                    pos = 0;
+                    
+                    printf("\nMascara Blue apos ordenacao:\n");                    
+
+                    for(int pos=0 ; pos<tamanhoMascara*tamanhoMascara ; pos++) {
+                        printf("%d ", mascaraVet[pos]);
+                    }
+
+                    free(vetmascaraBlueInt);
+
+                    printf("\n\n");
+                #endif
 
                     posVetMascaraRed = 0;
                     posVetMascaraGreen = 0;
@@ -351,27 +454,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    #ifdef kDEBUG
-        printf("Mascara antes ordenacao: ");
-
-        for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
-            // printf("%d ", vetMascara[i]);
-        }
-
-        printf("\n");
-    #endif
-
-    // quicksort(vetMascara, 0, tamanhoMascara*tamanhoMascara);
-
-    #ifdef kDEBUG
-        printf("Mascara apos ordenacao: ");
-
-        for(i=0 ; i<(tamanhoMascara*tamanhoMascara)-1 ; i++) {
-            // printf("%d ", vetMascara[i]);
-        }
-
-        printf("\n");
-    #endif
 
     // median(vetMascara, tamanhoMascara);
 
