@@ -10,8 +10,8 @@
 #define kQTD_BITS_IMG 24
 #define kQTD_ELEMENTOS_MASCARA 49
 //#define kDEBUG
-#define kDEBUG_MASCARA_ORDENADA
-#define kDEBUG_MEDIANA
+//#define kDEBUG_MASCARA_ORDENADA
+//#define kDEBUG_MEDIANA
 
 // Sem alinhamento
 #pragma pack (1)
@@ -344,6 +344,9 @@ int main(int argc, char **argv) {
                 #endif
 
                     medianRed = median(mascaraVet, tamanhoMascara);
+
+                    imgCopy[posY][posX].red = medianRed;                   
+
                 #ifdef kDEBUG_MEDIANA
                     printf("\nMediana Red: %d\n", medianRed);
                 #endif
@@ -375,6 +378,9 @@ int main(int argc, char **argv) {
                 #endif
 
                     medianGreen = median(mascaraVet, tamanhoMascara);
+
+                    imgCopy[posY][posX].green = medianGreen;
+
                 #ifdef kDEBUG_MEDIANA
                     printf("\nMediana Green: %d\n", medianGreen);
                 #endif
@@ -406,6 +412,9 @@ int main(int argc, char **argv) {
                 #endif
 
                     medianBlue = median(mascaraVet, tamanhoMascara);
+
+                    imgCopy[posY][posX].blue = medianBlue;
+
                 #ifdef kDEBUG_MEDIANA
                     printf("\nMediana Blue: %d\n", medianBlue);
                 #endif
@@ -473,9 +482,6 @@ int main(int argc, char **argv) {
             break;
         }
     }
-
-
-    // median(vetMascara, tamanhoMascara);
 
     // Percorre matriz ja carregada
     for(i=0 ; i<c.altura ; i++) {
