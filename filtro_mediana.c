@@ -8,7 +8,7 @@
 #define kQTD_PARAMS 4
 #define kARQ_SAIDA "saida.bmp"
 #define kQTD_BITS_IMG 24
-#define kQTD_ELEMENTOS_MASCARA 49
+#define kQTD_MAX_ELEMENTOS_MASCARA 49
 //#define kDEBUG
 //#define kDEBUG_MASCARA_ORDENADA
 //#define kDEBUG_MEDIANA
@@ -159,115 +159,12 @@ int median(int *v, int tamanhoMascara) {
     }
 }
 
-int main(int argc, char **argv) {
+void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB **img, RGB **imgCopy) {
 
-    int i, j, tamanhoMascara, nroThreads, deslPosMascara, posVetMascaraRed = 0, posVetMascaraGreen = 0, posVetMascaraBlue = 0, posX, posY, startX, startY, medianRed, medianGreen, medianBlue;
-
-    int mascaraVet[kQTD_ELEMENTOS_MASCARA];
-
-    unsigned char media;
-
-    HEADER c;
-
-    // Vetor de ponteiros
-    RGB **img = NULL, **imgCopy = NULL, *vetMascaraRGB = NULL, pixel;
-
+    int posVetMascaraRed = 0, posVetMascaraGreen = 0, posVetMascaraBlue = 0, posX, posY, startX, startY, i, j;
+    int medianRed, medianGreen, medianBlue;
     int *vetmascaraRedInt = NULL, *vetmascaraGreenInt = NULL, *vetmascaraBlueInt = NULL;
-
-    // Descritor
-    FILE *in, *out;
-
-    if(argc!=kQTD_PARAMS) {
-
-        printf("%s <tamanho_mascara> <numero_threads> <arquivo_entrada>\n", argv[0]);
-
-        exit(0);
-    }
-
-    tamanhoMascara = atoi(argv[1]);
-
-    nroThreads = atoi(argv[2]);
-
-    vetMascaraRGB = malloc(tamanhoMascara*tamanhoMascara*sizeof(RGB));
-
-    in = fopen(argv[3], "rb");
-
-    if(in == NULL) {
-        printf("Erro ao abrir arquivo \"%s\" de entrada\n", argv[3]);
-
-        exit(0);
-    }
-
-    // Abre arquivo binario para escrita
-    out = fopen(kARQ_SAIDA, "wb");
-
-    if(out == NULL) {
-        printf("Erro ao abrir arquivo de saida\n");
-
-        exit(0);
-    }
-
-    printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
-
-    //vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
-    //vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
-    //vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
-
-    // Le cabecalho de entrada
-    fread(&c, sizeof(HEADER), 1, in);
-
-#ifdef kDEBUG
-    printf("Tamanho do arquivo: %d\n", c.tamanhoArquivo);
-
-    printf("Offset: %d\n", c.offset);
-
-    printf("Largura: %d\n", c.largura);
-
-    printf("Altura: %d\n", c.altura);
-
-    printf("Nro bits: %d\n", c.nbits);
-
-    // Somente bytes da imagem
-    printf("Tamanho da imagem: %d\n", c.tamanhoImagem);
-#endif
-
-    if(c.nbits != kQTD_BITS_IMG) {
-        printf("\nA imagem lida nao possui %d bits", kQTD_BITS_IMG);
-
-        exit(0);
-    }
-
-    deslPosMascara = tamanhoMascara/2;
-
-    // printf("deslPosMascara = %d\n", deslPosMascara);
-
-    // Escreve cabecalho de saida
-    fwrite(&c, sizeof(HEADER), 1, out);
-
-    // Altura * tam para ponteiro de RGB
-    img = (RGB**) malloc(c.altura*sizeof(RGB *));
-    imgCopy = (RGB**) malloc(c.altura*sizeof(RGB *));
-
-    // Cada pos aponta para vetor de RGB
-    for(i=0 ; i<c.altura ; i++) {
-        img[i] = (RGB*) malloc(c.largura*sizeof(RGB));
-    }
-
-    for(i=0 ; i<c.altura ; i++) {
-        imgCopy[i] = (RGB*) malloc(c.largura*sizeof(RGB));
-    }
-
-    // Le 1 pixel por vez
-    for(i=0 ; i<c.altura ; i++) {
-        for(j=0 ; j<c.largura ; j++) {
-            fread(&img[i][j], sizeof(RGB), 1, in);
-            imgCopy[i][j] = img[i][j];
-        }
-    }
-
-    posVetMascaraRed = 0;
-    posVetMascaraGreen = 0;
-    posVetMascaraBlue = 0;
+    int mascaraVet[kQTD_MAX_ELEMENTOS_MASCARA];
 
     // Posicao atual na matriz
     posX = deslPosMascara;
@@ -482,6 +379,111 @@ int main(int argc, char **argv) {
             break;
         }
     }
+}
+
+int main(int argc, char **argv) {
+
+    int tamanhoMascara, deslPosMascara, nroThreads, i, j;
+
+    unsigned char media;
+
+    HEADER c;
+
+    // Vetor de ponteiros
+    RGB **img = NULL, **imgCopy = NULL, *vetMascaraRGB = NULL, pixel;    
+
+    // Descritor
+    FILE *in, *out;
+
+    if(argc!=kQTD_PARAMS) {
+
+        printf("%s <tamanho_mascara> <numero_threads> <arquivo_entrada>\n", argv[0]);
+
+        exit(0);
+    }
+
+    tamanhoMascara = atoi(argv[1]);
+
+    nroThreads = atoi(argv[2]);
+
+    vetMascaraRGB = malloc(tamanhoMascara*tamanhoMascara*sizeof(RGB));
+
+    in = fopen(argv[3], "rb");
+
+    if(in == NULL) {
+        printf("Erro ao abrir arquivo \"%s\" de entrada\n", argv[3]);
+
+        exit(0);
+    }
+
+    // Abre arquivo binario para escrita
+    out = fopen(kARQ_SAIDA, "wb");
+
+    if(out == NULL) {
+        printf("Erro ao abrir arquivo de saida\n");
+
+        exit(0);
+    }
+
+    printf("Tamanho mascara: %d\nQuantidade de threads: %d\n", tamanhoMascara, nroThreads);
+
+    //vetmascaraRedInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+    //vetmascaraGreenInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+    //vetmascaraBlueInt = malloc(sizeof(int)*tamanhoMascara*tamanhoMascara);
+
+    // Le cabecalho de entrada
+    fread(&c, sizeof(HEADER), 1, in);
+
+#ifdef kDEBUG
+    printf("Tamanho do arquivo: %d\n", c.tamanhoArquivo);
+
+    printf("Offset: %d\n", c.offset);
+
+    printf("Largura: %d\n", c.largura);
+
+    printf("Altura: %d\n", c.altura);
+
+    printf("Nro bits: %d\n", c.nbits);
+
+    // Somente bytes da imagem
+    printf("Tamanho da imagem: %d\n", c.tamanhoImagem);
+#endif
+
+    if(c.nbits != kQTD_BITS_IMG) {
+        printf("\nA imagem lida nao possui %d bits", kQTD_BITS_IMG);
+
+        exit(0);
+    }
+
+    deslPosMascara = tamanhoMascara/2;
+
+    // printf("deslPosMascara = %d\n", deslPosMascara);
+
+    // Escreve cabecalho de saida
+    fwrite(&c, sizeof(HEADER), 1, out);
+
+    // Altura * tam para ponteiro de RGB
+    img = (RGB**) malloc(c.altura*sizeof(RGB *));
+    imgCopy = (RGB**) malloc(c.altura*sizeof(RGB *));
+
+    // Cada pos aponta para vetor de RGB
+    for(i=0 ; i<c.altura ; i++) {
+        img[i] = (RGB*) malloc(c.largura*sizeof(RGB));
+    }
+
+    for(i=0 ; i<c.altura ; i++) {
+        imgCopy[i] = (RGB*) malloc(c.largura*sizeof(RGB));
+    }
+
+    // Le 1 pixel por vez
+    for(i=0 ; i<c.altura ; i++) {
+        for(j=0 ; j<c.largura ; j++) {
+            fread(&img[i][j], sizeof(RGB), 1, in);
+            imgCopy[i][j] = img[i][j];
+        }
+    }
+
+    apply_median_pixels(tamanhoMascara, deslPosMascara, c, img, imgCopy);
 
     // Percorre matriz ja carregada
     for(i=0 ; i<c.altura ; i++) {
