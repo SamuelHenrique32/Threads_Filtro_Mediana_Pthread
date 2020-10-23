@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <pthread.h>
 
 // --------------------------------------------------------------------------------------------------------
 
@@ -56,6 +57,16 @@ typedef struct rgb {
     unsigned char green;
     unsigned char red;
 } RGB;
+
+typedef struct argumentos {
+    int id;
+    int tamanhoMascara;
+    int deslPosMascara;
+    int nroThreads;
+    HEADER c;
+    RGB **img;
+    RGB **imgCopy;
+} ARGS;
 
 // --------------------------------------------------------------------------------------------------------
 
@@ -159,7 +170,18 @@ int median(int *v, int tamanhoMascara) {
     }
 }
 
-void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB **img, RGB **imgCopy) {
+//void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB **img, RGB **imgCopy) {
+void* apply_median_pixels(void *args) {
+
+    ARGS *localArgs = (ARGS*) args;
+
+    int id = localArgs->id;
+    int tamanhoMascara = localArgs->tamanhoMascara;
+    int deslPosMascara = localArgs->deslPosMascara;
+    int nroThreads = localArgs->nroThreads;
+    HEADER c = localArgs->c;
+    RGB **img = localArgs->img;
+    RGB **imgCopy = localArgs->imgCopy;
 
     int posVetMascaraRed = 0, posVetMascaraGreen = 0, posVetMascaraBlue = 0, posX, posY, startX, startY, i, j;
     int medianRed, medianGreen, medianBlue;
@@ -168,7 +190,7 @@ void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB *
 
     // Posicao atual na matriz
     posX = deslPosMascara;
-    posY = deslPosMascara;
+    posY = deslPosMascara+id;
 
     // Posicao inicial de deslocamento em X para mascara
     startX = 0;
@@ -177,7 +199,7 @@ void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB *
     j = startX;
 
     // Posicao inicial de deslocamento em Y para mascara
-    startY = 0;
+    startY = id-deslPosMascara;
 
     // Posicao corrente de deslocamento em Y para mascara
     i = startY;
@@ -357,11 +379,11 @@ void apply_median_pixels(int tamanhoMascara, int deslPosMascara, HEADER c, RGB *
             i = startY;
         }
         // Pixel abaixo
-        else if((posY+1) <= ((c.altura-1)-deslPosMascara)) {
+        else if((posY+nroThreads) <= ((c.altura-1)-deslPosMascara)) {
 
             posX = deslPosMascara;
 
-            posY++;
+            posY += nroThreads;
 
             // Posicao inicial de deslocamento em X para mascara
             startX = posX-deslPosMascara;
@@ -394,6 +416,10 @@ int main(int argc, char **argv) {
 
     // Descritor
     FILE *in, *out;
+
+    pthread_t *tid = NULL;
+
+	ARGS *args = NULL;
 
     if(argc!=kQTD_PARAMS) {
 
@@ -483,7 +509,29 @@ int main(int argc, char **argv) {
         }
     }
 
-    apply_median_pixels(tamanhoMascara, deslPosMascara, c, img, imgCopy);
+    tid = (pthread_t *)malloc(nroThreads * sizeof(pthread_t));
+
+	args = (ARGS *)malloc(nroThreads * sizeof(ARGS));
+
+    for(i=0 ; i<nroThreads ; i++) {
+
+        args[i].id = i;
+		args[i].tamanhoMascara = tamanhoMascara;		
+		args[i].deslPosMascara = deslPosMascara;
+        args[i].nroThreads = nroThreads;
+		args[i].c = c;
+		args[i].img = img;
+        args[i].imgCopy = imgCopy;
+
+		pthread_create(&tid[i], NULL, apply_median_pixels, (void *)&args[i]);
+	}
+
+    for(i=0 ; i<nroThreads ; i++) {
+
+        pthread_join(tid[i], NULL);
+    }
+
+    //apply_median_pixels(tamanhoMascara, deslPosMascara, c, img, imgCopy);
 
     // Percorre matriz ja carregada
     for(i=0 ; i<c.altura ; i++) {
