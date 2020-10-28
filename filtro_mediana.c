@@ -4,6 +4,11 @@
 #include <string.h>
 #include <pthread.h>
 
+/*
+* OBS: cada thread processa uma linha por vez, sendo que quando chegar ao final dessa, incrementa sua linha atual somando o numero de threads criados,
+*      ou seja é esperado que para cada thread tenha pelo menos uma linha a ser processada, caso contrario, o programa nao funcionara conforme esperado
+*/
+
 // --------------------------------------------------------------------------------------------------------
 
 #define kQTD_PARAMS 4
@@ -199,10 +204,13 @@ void* apply_median_pixels(void *args) {
     j = startX;
 
     // Posicao inicial de deslocamento em Y para mascara
-    startY = id-deslPosMascara;
+    startY = posY-deslPosMascara;
 
     // Posicao corrente de deslocamento em Y para mascara
     i = startY;
+
+    //printf("Thread id: %d\n", id);
+    //printf("posX = %d posY = %d\n", posX, posY);
 
     // Para cada pixel da imagem
     while((posX<c.largura) && (posY<c.altura)) {
@@ -252,8 +260,11 @@ void* apply_median_pixels(void *args) {
 
                     memset(mascaraVet, 0, sizeof(mascaraVet));
 
+                    //printf("\nMascara Red antes ordenacao:\n");                    
+
                     for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
                         mascaraVet[x] = vetmascaraRedInt[x];
+                        //printf("%d ", mascaraVet[x]);
                     }
 
                 #ifdef kQUICK_SORT
@@ -286,8 +297,11 @@ void* apply_median_pixels(void *args) {
 
                     memset(mascaraVet, 0, sizeof(mascaraVet));
 
+                    //printf("\nMascara Green antes ordenacao:\n");    
+
                     for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
                         mascaraVet[x] = vetmascaraGreenInt[x];
+                        //printf("%d ", mascaraVet[x]);
                     }
 
                 #ifdef kQUICK_SORT
@@ -320,8 +334,11 @@ void* apply_median_pixels(void *args) {
 
                     memset(mascaraVet, 0, sizeof(mascaraVet));
 
+                    //printf("\nMascara Blue antes ordenacao:\n");
+
                     for(int x=0 ; x<tamanhoMascara*tamanhoMascara ; x++) {
                         mascaraVet[x] = vetmascaraBlueInt[x];
+                        //printf("%d ", mascaraVet[x]);
                     }
 
                 #ifdef kQUICK_SORT
@@ -377,6 +394,9 @@ void* apply_median_pixels(void *args) {
 
             // Posicao corrente de deslocamento em Y para mascara
             i = startY;
+
+            //printf("\n\nThread id: %d pixel a direita\n", id);
+            //printf("posX = %d posY = %d\n", posX, posY);
         }
         // Pixel abaixo
         else if((posY+nroThreads) <= ((c.altura-1)-deslPosMascara)) {
@@ -396,8 +416,14 @@ void* apply_median_pixels(void *args) {
 
             // Posicao corrente de deslocamento em Y para mascara
             i = startY;
+
+            //printf("\n\nThread id: %d pixel abaixo\n", id);
+            //printf("posX = %d posY = %d\n", posX, posY);
         }
         else {
+
+            //printf("\n\nThread id: %d fim\n", id);
+
             break;
         }
     }
@@ -506,8 +532,13 @@ int main(int argc, char **argv) {
         for(j=0 ; j<c.largura ; j++) {
             fread(&img[i][j], sizeof(RGB), 1, in);
             imgCopy[i][j] = img[i][j];
+            //printf("%d|%d|%d\t\t\t\t", img[i][j].red, img[i][j].green, img[i][j].blue);
         }
+
+        //printf("\n");
     }
+
+    //printf("\n\n");
 
     tid = (pthread_t *)malloc(nroThreads * sizeof(pthread_t));
 
